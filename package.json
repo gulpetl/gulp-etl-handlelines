@@ -1,5 +1,5 @@
 {
-  "name": "gulp-datatube-starter",
+  "name": "gulp-datatube-handlelines",
   "version": "1.0.0",
   "description": "Starter for gulp plugin",
   "main": "gulpfile.ts",
