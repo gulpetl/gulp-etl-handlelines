@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const through2 = require('through2');
 const split = require('split');
-const plugin_error_1 = require("plugin-error");
+const PluginError = require("plugin-error");
 // consts
 const PLUGIN_NAME = 'gulp-datatube-handlelines';
 /* This is a model data.tube plugin. It is compliant with best practices for Gulp plugins (see
@@ -35,7 +35,7 @@ function handler(configObj, newHandleLine) {
             }
         }
         catch (err) {
-            returnErr = new plugin_error_1.default(PLUGIN_NAME, err);
+            returnErr = new PluginError(PLUGIN_NAME, err);
         }
         callback(returnErr);
     };
@@ -62,7 +62,7 @@ function handler(configObj, newHandleLine) {
                         strArray.splice(Number(dataIdx), 1); // remove the array item if handleLine returned null
                 }
                 catch (err) {
-                    returnErr = new plugin_error_1.default(PLUGIN_NAME, err);
+                    returnErr = new PluginError(PLUGIN_NAME, err);
                 }
             }
             let data = strArray.join('\n');
@@ -87,7 +87,7 @@ function handler(configObj, newHandleLine) {
             })
                 .on('error', function (err) {
                 //console.error(err)
-                cb(new plugin_error_1.default(PLUGIN_NAME, err));
+                cb(new PluginError(PLUGIN_NAME, err));
             });
         }
     });

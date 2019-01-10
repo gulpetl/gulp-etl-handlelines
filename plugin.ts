@@ -1,7 +1,7 @@
 const through2 = require('through2')
 import Vinyl from 'vinyl'
 const split = require('split')
-import PluginError from 'plugin-error';
+import PluginError = require('plugin-error');
 
 // consts
 const PLUGIN_NAME = 'gulp-datatube-handlelines';
@@ -13,7 +13,7 @@ export type TransformCallback = (lineObj : Object) => Object|null
   but with an additional feature: it accepts a configObj as its first parameter */
   export function handler(configObj: any, newHandleLine? : TransformCallback) {
     let propsToAdd = configObj.propsToAdd
-
+    
     // handleLine could be the only needed piece to be replaced for most dataTube plugins
     const defaultHandleLine = (lineObj : Object): Object|null => {
       for (let propName in propsToAdd) {
