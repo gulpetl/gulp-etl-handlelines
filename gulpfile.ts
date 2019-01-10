@@ -1,5 +1,6 @@
 let gulp = require('gulp')
 import * as linehandler from './plugin'
+export {handler, TransformCallback} from './plugin';
 const split = require('split')
 
 import _ from 'highland'
