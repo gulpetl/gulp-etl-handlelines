@@ -63,7 +63,9 @@ export type TransformCallback = (lineObj : Object) => Object|null
         // we'll call handleLine on each line
         for (let dataIdx in strArray) {
           try {
-            tempLine = handleLine((strArray[dataIdx]))
+            let lineObj;
+            if (strArray[dataIdx].trim() != "") lineObj = JSON.parse(strArray[dataIdx]);
+            tempLine = handleLine(lineObj)
             if (tempLine) strArray[dataIdx] = JSON.stringify(tempLine)
             else strArray.splice(Number(dataIdx), 1) // remove the array item if handleLine returned null
           } catch (err) {
