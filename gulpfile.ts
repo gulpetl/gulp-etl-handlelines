@@ -4,6 +4,8 @@ export {handler, TransformCallback} from './plugin';
 const split = require('split')
 
 import _ from 'highland'
+import { start } from 'repl';
+import { prependOnceListener } from 'cluster';
 //import * as plumber from 'gulp-plumber'
 const plumber = require('gulp-plumber')
  function build(callback:any) {
@@ -47,24 +49,37 @@ const plumber = require('gulp-plumber')
     return result;
   }
 
+  //variables that are shared between handleLine, endHandler, and startHandler can go here
+  let recordCount: number = 0;
+
   // handleLine could be the only needed piece to be replaced for most dataTube plugins
-  const handleLine = (lineObj : Object): Object => {
+  const handleLine = (lineObj : object): object => {
     //console.log(line)
+    
     for (let propName in lineObj) {
       let obj = (<any>lineObj)
+      if(obj.type === 'RECORD') recordCount++;
       if (typeof(obj[propName]) == "string")
         obj[propName] = obj[propName].toUpperCase()
     }
     return lineObj
   }
 
+  const finishHandler = () => {
+    console.log("This is the end of handlelines")
+    
+    console.log('recordCount: ' + recordCount);
+  }
+  const startHandler = () => {
+    console.log("This is the start of handlelines")
+  }
   function build_plumber(callback:any) {
     let result
        result = 
-        gulp.src('./testdata/*', { buffer: false })
+        gulp.src('./testdata/*', { buffer: false })//
         //.src('./testdata/*') // buffer is true by default
 //        .pipe(plumber({errorHandler:false}))
-        .pipe(linehandler.handler({propsToAdd:{extraParam:1}}, handleLine))
+        .pipe(linehandler.handler({propsToAdd:{extraParam:1}}, {transformCallback:handleLine, finishFunction:finishHandler, startFunction:startHandler}))
         .on('error', console.error.bind(console))
         // .on('error', function(this:any,err: any) {
         //   console.error(err)
