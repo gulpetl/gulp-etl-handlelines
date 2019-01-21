@@ -39,26 +39,14 @@ const splitStream = (lineObj: object, self: any): object | null => {
   return null;
 
 }
-const finishHandler = (file: Vinyl, self: any): object | null => {
-  console.log("The handler has officially ended!");
-  console.log("count: " + count);
 
-  (file.contents as unknown as ThroughStream).end();
-  (newFile.contents as unknown as ThroughStream).end();
-  if (count != 0) {
-    self.push(newFile)
-  }
-
-  // self.push(file);
-  return null;
-}
 function build_plumber(callback: any) {
   let result
   result =
-    gulp.src('./testdata/*', { buffer: false })//
+    gulp.src('./testdata/*',{buffer:false})//, { buffer: false }
       //.src('./testdata/*') // buffer is true by default
       //        .pipe(plumber({errorHandler:false}))
-      .pipe(linehandler.handler({ propsToAdd: { extraParam: 1 } }, { transformCallback: handleLine }))
+      .pipe(linehandler.handler({ propsToAdd: { extraParam: 1 } }, { transformCallback: splitStream }))
       .on('error', console.error.bind(console))
       // .on('error', function(this:any,err: any) {
       //   console.error(err)
@@ -81,4 +69,27 @@ function build_plumber(callback: any) {
   return result;
 }
 
+function getDateStamp() {
+  const dt: Date = new Date()
+  const dateStamp =
+    Number(String(dt.getFullYear()).substr(2, 2))
+      .toString(32)
+      .padStart(2, '0') + // 2-digit year converted to base32
+    (dt.getMonth() + 1).toString(32) + // month (1-12) converted to base32
+    dt.getDate().toString(32) + // day (1-31) converted to base 32
+    '_' +
+    // hmmss, where h is in base32, but mmss is in normal base10 (base 10 for readability; we can't save any digits by using base32)
+    dt.getHours().toString(32) +
+    String(dt.getMinutes()).padStart(2, '0') +
+    String(dt.getSeconds()).padStart(2, '0') +
+    '_' +
+    // milliseconds, in base32
+    dt
+      .getMilliseconds()
+      .toString(32)
+      .padStart(2, '0')
+  return dateStamp;
+}
+
 exports.default = gulp.series(build_plumber)
+
