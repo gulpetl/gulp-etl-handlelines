@@ -25,8 +25,8 @@ export type TransformCallback = (lineObj : Object) => Object|null
     const handleLine : TransformCallback = newHandleLine ? newHandleLine : defaultHandleLine
 
     let transformer = through2.obj(); // new transform stream, in object mode
-    // since we're in object mode, dataLine comes as a string. Since we're counting on split
-    // to have already been called upstream, dataLine will be a single line at a time
+    // // since we're in object mode, dataLine comes as a string. Since we're counting on split
+    // // to have already been called upstream, dataLine will be a single line at a time
     transformer._transform = function(dataLine:string, encoding: string, callback: Function) {
       let returnErr: any = null
       try {
@@ -80,11 +80,27 @@ export type TransformCallback = (lineObj : Object) => Object|null
         cb(returnErr, file)
       } 
       else if (file.isStream()) {
+        let contents = through2.obj();
         file.contents = file.contents
         // split plugin will split the file into lines
         .pipe(split())
-        // our transformer stream, created above, will deal with each line using handleLine
-        .pipe(transformer)
+        .on('data', function(dataLine:any){
+          let dataObj
+          if (dataLine.trim() != "") dataObj = JSON.parse(dataLine)
+          let handledObj = handleLine(dataObj)
+          if (handledObj) {
+            let handledLine = JSON.stringify(handledObj)
+            console.log(handledLine)
+            contents.push(handledLine + '\n');
+          }
+        })
+        .on('end', function(){
+          console.log('end');
+          contents.end();
+          file.contents = contents;
+          self.push(file);
+          cb(returnErr);
+        })
         .on('finish', function() {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
 
