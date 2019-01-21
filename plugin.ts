@@ -110,7 +110,7 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
           if (handledObj) {
             let handledLine = JSON.stringify(handledObj)
             console.log(handledLine);
-           this.push(handleLine + '\n');
+           this.push(handledLine + '\n');
             
           }
 
