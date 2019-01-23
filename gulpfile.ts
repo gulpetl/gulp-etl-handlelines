@@ -7,7 +7,7 @@ import { ThroughStream } from 'through';
 const through2 = require('through2')
 
 // handleLine could be the only needed piece to be replaced for most dataTube plugins
-const handleLine = (lineObj: object, self: any): object => {
+const handleLine = (lineObj: object): object => {
   //console.log(line)
   for (let propName in lineObj) {
     let obj = (<any>lineObj)
@@ -17,28 +17,6 @@ const handleLine = (lineObj: object, self: any): object => {
   return lineObj
 }
 
-let count: number = 0;
-let filecount: number = 0;
-let newFile = new Vinyl({
-  path: 'linesA' + filecount + '.txt',
-  contents: through2.obj()
-})
-const splitStream = (lineObj: object, self: any): object | null => {
-
-  count++;
-  (newFile.contents as unknown as ThroughStream).push(JSON.stringify(lineObj) + '\n')
-  if (count == 2) {
-    (newFile.contents as unknown as ThroughStream).end();
-    self.push(newFile)
-    newFile = new Vinyl({
-      path: 'linesA' + (++filecount) + '.txt',
-      contents: through2.obj()
-    })
-    count = 0;
-  }
-  return null;
-
-}
 
 function build_plumber(callback: any) {
   let result
@@ -46,7 +24,7 @@ function build_plumber(callback: any) {
     gulp.src('./testdata/*',{buffer:false})//, { buffer: false }
       //.src('./testdata/*') // buffer is true by default
       //        .pipe(plumber({errorHandler:false}))
-      .pipe(linehandler.handler({ propsToAdd: { extraParam: 1 } }, { transformCallback: splitStream }))
+      .pipe(linehandler.handler({ propsToAdd: { extraParam: 1 } }, { transformCallback: handleLine }))
       .on('error', console.error.bind(console))
       // .on('error', function(this:any,err: any) {
       //   console.error(err)

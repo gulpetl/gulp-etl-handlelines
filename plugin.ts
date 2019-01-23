@@ -4,13 +4,14 @@ const split = require('split2')
 import PluginError = require('plugin-error');
 import { ThroughStream } from 'through';
 import { setFlagsFromString } from 'v8';
+const toThrough = require('to-through');
 
 // consts
 const PLUGIN_NAME = 'gulp-datatube-handlelines';
 
-export type TransformCallback = (lineObj: object, self?: any) => object | null
-export type FinishCallback = (file: Vinyl, self: any) => object | null
-export type StartCallback = () => object | null
+export type TransformCallback = (lineObj: object) => object | null
+export type FinishCallback = () => void
+export type StartCallback = () => void
 export type allCallbacks = {
   transformCallback?: TransformCallback,
   finishCallback?: FinishCallback,
@@ -24,20 +25,21 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
   let propsToAdd = configObj.propsToAdd
 
   // handleLine could be the only needed piece to be replaced for most dataTube plugins
-  const defaultHandleLine = (lineObj: Object, self: any): Object | null => {
+  const defaultHandleLine = (lineObj: object): object | null => {
     for (let propName in propsToAdd) {
       (lineObj as any)[propName] = propsToAdd[propName]
     }
     return lineObj
   }
-
-  const defaultFinishHandler = (file: Vinyl, self: any): object | null => {
+  const defaultFinishHandler = (): void => {
     console.log("The handler has officially ended!");
-    self.push(file);
-    return null;
+  }
+  const defaultStartHandler = () => {
+    console.log("The handler has officially started!");
   }
   const handleLine: TransformCallback = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
-  const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler
+  const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
+  let startHandler: StartCallback = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
 
   let transformer = through2.obj(); // new transform stream, in object mode
   // // since we're in object mode, dataLine comes as a string. Since we're counting on split
@@ -60,6 +62,7 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
     callback(returnErr)
   }
 
+
   // creating a stream through which each file will pass
   // see https://stackoverflow.com/a/52432089/5578474 for a note on the "this" param
   const strm = through2.obj(function (this: any, file: Vinyl, encoding: string, cb: Function) {
@@ -80,7 +83,7 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
         try {
           let lineObj;
           if (strArray[dataIdx].trim() != "") lineObj = JSON.parse(strArray[dataIdx]);
-          tempLine = handleLine(lineObj, self)
+          tempLine = handleLine(lineObj)
           if (tempLine) strArray[dataIdx] = JSON.stringify(tempLine)
           else strArray.splice(Number(dataIdx), 1) // remove the array item if handleLine returned null
         } catch (err) {
@@ -91,49 +94,24 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
       console.log(data)
       file.contents = new Buffer(data)
 
+      finishHandler();
+
       // send the transformed file through to the next gulp plugin, and tell the stream engine that we're done with this file
       cb(returnErr, file)
     }
     else if (file.isStream()) {
-
-      // let contents = through2.obj();
       file.contents = file.contents
         // split plugin will split the file into lines
         .pipe(split())
-        // .pipe(transformer)
-        .on('data', function (this:any,dataLine: any) {
-          let dataObj
-          if (dataLine.trim() != "") {
-            dataObj = JSON.parse(dataLine)
-          }
-          let handledObj = handleLine(dataObj, self)
-          if (handledObj) {
-            let handledLine = JSON.stringify(handledObj)
-            console.log(handledLine);
-           this.push(handledLine + '\n');
-            
-          }
-
-        })
-        .on('end', function () {
-          console.log('end');
-          // contents.end();
-          // file.contents = contents;
-          //finishHandler(newFile, self);
-
-          self.push(file);
-          cb(returnErr);
-        })
-
+        .pipe(transformer)
         .on('finish', function () {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
-
+          //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
+          //this is when we want to pass the file along
           console.log('finished')
-
-          // send the transformed file goes through to the next gulp plugin
-          //self.push(file)
-          // tell the stream engine that we are done with this file
-          //cb(returnErr);
+          finishHandler();
+          self.push(file);
+          cb(returnErr);
         })
         .on('error', function (err: any) {
           //console.error(err)
@@ -143,5 +121,6 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
 
   })
 
+  startHandler();
   return strm
 }
