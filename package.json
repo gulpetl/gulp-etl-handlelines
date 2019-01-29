@@ -4,30 +4,29 @@
   "description": "Starter for gulp plugin",
   "main": "dist/js/gulpfile.js",
   "typings": "dist/types/gulpfile.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build-codeonly": "tsc && tsc --module commonjs --outDir dist/lib",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gulp-plumber": "^1.2.1",
-    "highland": "^2.13.0",
-    "npm": "^6.6.0",
+    "from2": "^2.3.0",
     "plugin-error": "^1.0.1",
-    "split": "^1.0.1",
     "split2": "^3.1.0",
     "through2": "^3.0.0",
-    "to-through": "^2.0.0",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "@types/gulp-plumber": "0.0.32",
-    "@types/highland": "^2.12.1",
+    "@types/jest": "^23.3.13",
     "@types/node": "^10.12.18",
-    "@types/split": "^1.0.0",
     "@types/vinyl": "^2.0.2",
     "gulp": "^4.0.0",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.5",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"
   }

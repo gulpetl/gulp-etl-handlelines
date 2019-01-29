@@ -2,9 +2,6 @@ const through2 = require('through2')
 import Vinyl = require('vinyl')
 const split = require('split2')
 import PluginError = require('plugin-error');
-import { ThroughStream } from 'through';
-import { setFlagsFromString } from 'v8';
-const toThrough = require('to-through');
 
 // consts
 const PLUGIN_NAME = 'gulp-datatube-handlelines';
@@ -21,7 +18,7 @@ export type allCallbacks = {
 /* This is a model data.tube plugin. It is compliant with best practices for Gulp plugins (see
 https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like ),
 but with an additional feature: it accepts a configObj as its first parameter */
-export function handler(configObj: any, newHandlers?: allCallbacks) {
+export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   let propsToAdd = configObj.propsToAdd
 
   // handleLine could be the only needed piece to be replaced for most dataTube plugins
@@ -32,10 +29,10 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
     return lineObj
   }
   const defaultFinishHandler = (): void => {
-    console.log("The handler has officially ended!");
+    //console.log("The handler has officially ended!");
   }
   const defaultStartHandler = () => {
-    console.log("The handler has officially started!");
+    //console.log("The handler has officially started!");
   }
   const handleLine: TransformCallback = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
@@ -52,7 +49,7 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
       let handledObj = handleLine(dataObj)
       if (handledObj) {
         let handledLine = JSON.stringify(handledObj)
-        console.log(handledLine)
+        //console.log(handledLine)
         this.push(handledLine + '\n');
       }
     } catch (err) {
@@ -84,14 +81,14 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
           let lineObj;
           if (strArray[dataIdx].trim() != "") lineObj = JSON.parse(strArray[dataIdx]);
           tempLine = handleLine(lineObj)
-          if (tempLine) strArray[dataIdx] = JSON.stringify(tempLine)
+          if (tempLine) strArray[dataIdx] = JSON.stringify(tempLine)+'\n'
           else strArray.splice(Number(dataIdx), 1) // remove the array item if handleLine returned null
         } catch (err) {
           returnErr = new PluginError(PLUGIN_NAME, err);
         }
       }
-      let data = strArray.join('\n')
-      console.log(data)
+      let data = strArray.join('')
+      //console.log(data)
       file.contents = new Buffer(data)
 
       finishHandler();
@@ -108,7 +105,7 @@ export function handler(configObj: any, newHandlers?: allCallbacks) {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
           //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
           //this is when we want to pass the file along
-          console.log('finished')
+          //console.log('finished')
           finishHandler();
           self.push(file);
           cb(returnErr);

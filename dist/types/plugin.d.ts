@@ -1,2 +1,9 @@
-export declare type TransformCallback = (lineObj: Object) => Object | null;
-export declare function handler(configObj: any, newHandleLine?: TransformCallback): any;
+export declare type TransformCallback = (lineObj: object) => object | null;
+export declare type FinishCallback = () => void;
+export declare type StartCallback = () => void;
+export declare type allCallbacks = {
+    transformCallback?: TransformCallback;
+    finishCallback?: FinishCallback;
+    startCallback?: StartCallback;
+};
+export declare function handlelines(configObj: any, newHandlers?: allCallbacks): any;

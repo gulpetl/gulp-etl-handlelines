@@ -1,1 +1,1 @@
-export { handler, TransformCallback } from './plugin';
+export { handlelines, TransformCallback } from './plugin';
