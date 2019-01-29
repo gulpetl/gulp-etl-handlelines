@@ -16,6 +16,15 @@
                 "--nolazy", "-r", "ts-node/register"
             ],
             "console": "internalConsole"
-        }
+        },{
+            "name": "aws-doParse: debug TS w/o transpile using ts-node",
+            "type": "node",
+            "request": "launch",
+            "args": ["src/aws/dev-handler.ts"],
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "internalConsoleOptions": "openOnSessionStart",
+        },
     ]
 }
