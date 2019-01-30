@@ -78,7 +78,7 @@ function handlelines(configObj, newHandlers) {
             }
             let data = resultArray.join('');
             //console.log(data)
-            file.contents = new Buffer(data);
+            file.contents = Buffer.from(data);
             finishHandler();
             // send the transformed file through to the next gulp plugin, and tell the stream engine that we're done with this file
             cb(returnErr, file);

@@ -90,7 +90,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       }
       let data = resultArray.join('')
       //console.log(data)
-      file.contents = new Buffer(data)
+      file.contents = Buffer.from(data)
 
       finishHandler();
 
