@@ -26,6 +26,7 @@
     "@types/vinyl": "^2.0.2",
     "gulp": "^4.0.0",
     "jest": "^23.6.0",
+    "jest-spec-reporter": "^1.0.5",
     "ts-jest": "^23.10.5",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"

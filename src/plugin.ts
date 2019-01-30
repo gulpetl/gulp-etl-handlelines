@@ -74,20 +74,21 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       // strArray will hold file.contents, split into lines
       const strArray = (file.contents as Buffer).toString().split(/\r?\n/)
       let tempLine: any
-
+      let resultArray = [];
       // we'll call handleLine on each line
       for (let dataIdx in strArray) {
         try {
           let lineObj;
           if (strArray[dataIdx].trim() != "") lineObj = JSON.parse(strArray[dataIdx]);
           tempLine = handleLine(lineObj)
-          if (tempLine) strArray[dataIdx] = JSON.stringify(tempLine)+'\n'
-          else strArray.splice(Number(dataIdx), 1) // remove the array item if handleLine returned null
+          if (tempLine){
+            resultArray.push(JSON.stringify(tempLine) + '\n');
+          }
         } catch (err) {
           returnErr = new PluginError(PLUGIN_NAME, err);
         }
       }
-      let data = strArray.join('')
+      let data = resultArray.join('')
       //console.log(data)
       file.contents = new Buffer(data)
 
