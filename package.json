@@ -1,9 +1,9 @@
 {
-  "name": "gulp-datatube-handlelines",
+  "name": "gulp-etl-handlelines",
   "version": "1.0.0",
   "description": "Starter for gulp plugin",
-  "main": "dist/js/gulpfile.js",
-  "typings": "dist/types/gulpfile.d.ts",
+  "main": "dist/js/plugin.js",
+  "typings": "dist/types/plugin.d.ts",
   "files": [
     "dist"
   ],
