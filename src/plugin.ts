@@ -88,7 +88,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
           returnErr = new PluginError(PLUGIN_NAME, err);
         }
       }
-      let data = resultArray.join('')
+      let data:string = resultArray.join('')
       //console.log(data)
       file.contents = Buffer.from(data)
 
