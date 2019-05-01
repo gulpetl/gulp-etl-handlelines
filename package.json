@@ -15,20 +15,22 @@
   "license": "ISC",
   "dependencies": {
     "from2": "^2.3.0",
+    "loglevel": "^1.6.1",
     "plugin-error": "^1.0.1",
-    "split2": "^3.1.0",
-    "through2": "^3.0.0",
+    "split2": "^3.1.1",
+    "through2": "^3.0.1",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.13",
-    "@types/node": "^10.12.18",
-    "@types/vinyl": "^2.0.2",
-    "gulp": "^4.0.0",
-    "jest": "^23.6.0",
+    "@types/jest": "^23.3.14",
+    "@types/loglevel": "^1.5.4",
+    "@types/node": "^10.14.6",
+    "@types/vinyl": "^2.0.3",
+    "gulp": "^4.0.1",
+    "jest": "^24.7.1",
     "jest-spec-reporter": "^1.0.5",
-    "ts-jest": "^23.10.5",
+    "ts-jest": "^24.0.2",
     "ts-node": "^7.0.1",
-    "typescript": "^3.2.2"
+    "typescript": "^3.4.5"
   }
 }

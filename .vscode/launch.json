@@ -10,12 +10,26 @@
             "request": "launch",
             "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
             "stopOnEntry": false,
-            "args": ["--gulpfile", "./gulpfile.ts", "default"],
+            "args": ["--gulpfile", "./src/gulpfile.ts", "default"],
             "cwd": "${workspaceRoot}",
             "runtimeArgs": [
                 "--nolazy", "-r", "ts-node/register"
             ],
-            "console": "internalConsole"
+            "console": "internalConsole",
+            "env": {"DEBUG_LEVEL":"info"}
+        },{        
+            "name": "GulpTester Debug",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
+            "stopOnEntry": false,
+            "args": ["--gulpfile", "./src/gulpfile.ts", "default"],
+            "cwd": "${workspaceRoot}",
+            "runtimeArgs": [
+                "--nolazy", "-r", "ts-node/register"
+            ],
+            "console": "internalConsole",
+            "env": {"DEBUG_LEVEL":"debug"}
         },{
             "name": "aws-doParse: debug TS w/o transpile using ts-node",
             "type": "node",
