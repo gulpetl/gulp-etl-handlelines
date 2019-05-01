@@ -1,6 +1,6 @@
 let gulp = require('gulp')
-import {handlelines} from './plugin'
-export { handlelines, TransformCallback } from './plugin';
+import {handlelines} from '../src/plugin'
+export { handlelines, TransformCallback } from '../src/plugin';
 import * as log from 'loglevel'
 log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
 
@@ -24,10 +24,10 @@ const handleLine = (lineObj: object): object => {
 function build_plumber(callback: any) {
   let result
   result =
-    gulp.src('../InputOutput/testdata/*',{buffer:false})//, { buffer: false }
+    gulp.src('../testdata/*.ndjson',{buffer:false})//, { buffer: false }
       .pipe(handlelines({ propsToAdd: { extraParam: 1 } }, { transformCallback: handleLine }))
       .on('error', log.error)
-      .pipe(gulp.dest('../InputOutput/output/processed'))
+      .pipe(gulp.dest('../testdata/processed'))
       .on('end', function () {
         log.info('end')
         callback()
