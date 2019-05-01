@@ -34,7 +34,7 @@ Send in callbacks as a second parameter in the form:
 
 ##### Sample gulpfile.js
 ```
-let handleLines = require('gulp-datatube-handlelines')
+let handleLines = require('gulp-etl-handlelines')
 
 const handleLine = (lineObj) => {
     // return null to remove this line
@@ -55,7 +55,7 @@ exports.default = function() {
 }
 ```
 ### Model Plugin
-This plugin is intended to be a model **data.tube** plugin, usable as a template to be forked to create new plugins for other uses. It is compliant with [best practices for gulp plugins](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like), and it properly handles both [buffers](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/using-buffers.md) and [streams](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/dealing-with-streams.md).
+This plugin is intended to be a model **gulp-etl** plugin, usable as a template to be forked to create new plugins for other uses. It is compliant with [best practices for gulp plugins](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like), and it properly handles both [buffers](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/using-buffers.md) and [streams](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/dealing-with-streams.md).
 
 
 

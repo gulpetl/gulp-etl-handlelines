@@ -4,7 +4,7 @@ const split = require('split2')
 import PluginError = require('plugin-error');
 
 // consts
-const PLUGIN_NAME = 'gulp-datatube-handlelines';
+const PLUGIN_NAME = 'gulp-etl-handlelines';
 
 export type TransformCallback = (lineObj: object) => object | null
 export type FinishCallback = () => void
@@ -15,13 +15,13 @@ export type allCallbacks = {
   startCallback?: StartCallback
 }
 
-/* This is a model data.tube plugin. It is compliant with best practices for Gulp plugins (see
+/* This is a model gulp-etl plugin. It is compliant with best practices for Gulp plugins (see
 https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like ),
 but with an additional feature: it accepts a configObj as its first parameter */
 export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   let propsToAdd = configObj.propsToAdd
 
-  // handleLine could be the only needed piece to be replaced for most dataTube plugins
+  // handleLine could be the only needed piece to be replaced for most gulp-etl plugins
   const defaultHandleLine = (lineObj: object): object | null => {
     for (let propName in propsToAdd) {
       (lineObj as any)[propName] = propsToAdd[propName]

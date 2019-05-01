@@ -5,7 +5,7 @@ import * as log from 'loglevel'
 log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
 
 
-// handleLine could be the only needed piece to be replaced for most dataTube plugins
+// handleLine could be the only needed piece to be replaced for most gulp-etl plugins
 const handleLine = (lineObj: object): object => {
   log.debug(lineObj)
   for (let propName in lineObj) {
