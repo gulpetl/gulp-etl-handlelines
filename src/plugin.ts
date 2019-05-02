@@ -2,9 +2,11 @@ const through2 = require('through2')
 import Vinyl = require('vinyl')
 const split = require('split2')
 import PluginError = require('plugin-error');
-
-// consts
-const PLUGIN_NAME = 'gulp-etl-handlelines';
+const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
+const PLUGIN_NAME = module.exports.name;
+import * as loglevel from 'loglevel'
+const log = loglevel.getLogger(PLUGIN_NAME) // get a logger instance based on the project name
+log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
 
 export type TransformCallback = (lineObj: object) => object | null
 export type FinishCallback = () => void
@@ -29,10 +31,10 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
     return lineObj
   }
   const defaultFinishHandler = (): void => {
-    //console.log("The handler has officially ended!");
+    log.info("The handler has officially ended!");
   }
   const defaultStartHandler = () => {
-    //console.log("The handler has officially started!");
+    log.info("The handler has officially started!");
   }
   const handleLine: TransformCallback = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
@@ -49,7 +51,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       let handledObj = handleLine(dataObj)
       if (handledObj) {
         let handledLine = JSON.stringify(handledObj)
-        //console.log(handledLine)
+        log.debug(handledLine)
         this.push(handledLine + '\n');
       }
     } catch (err) {
@@ -89,7 +91,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
         }
       }
       let data:string = resultArray.join('')
-      //console.log(data)
+      log.debug(data)
       file.contents = Buffer.from(data)
 
       finishHandler();
@@ -106,13 +108,13 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
           //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
           //this is when we want to pass the file along
-          //console.log('finished')
+          log.debug('finished')
           finishHandler();
           self.push(file);
           cb(returnErr);
         })
         .on('error', function (err: any) {
-          //console.error(err)
+          log.error(err)
           cb(new PluginError(PLUGIN_NAME, err))
         })
     }
