@@ -7,6 +7,8 @@ log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
 import * as rename from 'gulp-rename'
 const errorHandler = require('gulp-error-handle'); // handle all errors in one handler, but still stop the stream if there are errors
 
+import * as vinylPaths from 'vinyl-paths';
+import * as del from 'del';
 
 const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
 const PLUGIN_NAME = module.exports.name;
@@ -48,6 +50,10 @@ function demonstrateHandlelines(callback: any) {
         suffix: "-fixed",
       }))      
       .pipe(gulp.dest('../testdata/processed'))
+      // .pipe(vinylPaths((path) => {
+      //   // experimenting with deleting files. This actually deletes the NEW files, not the originals!
+      //   return del(path, {force:true})
+      // }))
       .on('end', function () {
         log.info('end')
         callback()
@@ -55,4 +61,10 @@ function demonstrateHandlelines(callback: any) {
     }
 
 
-exports.default = gulp.series(demonstrateHandlelines)
+
+    function test(callback: any) {
+      log.info('This seems to run only after a successful run of demonstrateHandlelines! Do deletions here?')
+      callback()
+    }
+
+exports.default = gulp.series(demonstrateHandlelines, test)
