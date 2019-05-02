@@ -51,7 +51,8 @@ function demonstrateHandlelines(callback: any) {
       }))      
       .pipe(gulp.dest('../testdata/processed'))
       // .pipe(vinylPaths((path) => {
-      //   // experimenting with deleting files. This actually deletes the NEW files, not the originals!
+      //   // experimenting with deleting files, per https://github.com/gulpjs/gulp/blob/master/docs/recipes/delete-files-folder.md.
+      //   // This actually deletes the NEW files, not the originals! Try gulp-revert-path
       //   return del(path, {force:true})
       // }))
       .on('end', function () {
