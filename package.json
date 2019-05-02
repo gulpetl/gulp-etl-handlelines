@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "from2": "^2.3.0",
+    "gulp-error-handle": "^1.0.1",
     "loglevel": "^1.6.1",
     "plugin-error": "^1.0.1",
     "split2": "^3.1.1",
@@ -22,11 +23,13 @@
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
+    "@types/gulp-rename": "0.0.33",
     "@types/jest": "^23.3.14",
     "@types/loglevel": "^1.5.4",
     "@types/node": "^10.14.6",
     "@types/vinyl": "^2.0.3",
     "gulp": "^4.0.1",
+    "gulp-rename": "^1.4.0",
     "jest": "^24.7.1",
     "jest-spec-reporter": "^1.0.5",
     "ts-jest": "^24.0.2",
