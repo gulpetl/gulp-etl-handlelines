@@ -3,14 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const through2 = require('through2');
 const split = require('split2');
 const PluginError = require("plugin-error");
-// consts
-const PLUGIN_NAME = 'gulp-datatube-handlelines';
-/* This is a model data.tube plugin. It is compliant with best practices for Gulp plugins (see
+const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
+const PLUGIN_NAME = module.exports.name;
+const loglevel = require("loglevel");
+const log = loglevel.getLogger(PLUGIN_NAME); // get a logger instance based on the project name
+log.setLevel((process.env.DEBUG_LEVEL || 'warn'));
+/* This is a model gulp-etl plugin. It is compliant with best practices for Gulp plugins (see
 https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like ),
 but with an additional feature: it accepts a configObj as its first parameter */
 function handlelines(configObj, newHandlers) {
     let propsToAdd = configObj.propsToAdd;
-    // handleLine could be the only needed piece to be replaced for most dataTube plugins
+    // handleLine could be the only needed piece to be replaced for most gulp-etl plugins
     const defaultHandleLine = (lineObj) => {
         for (let propName in propsToAdd) {
             lineObj[propName] = propsToAdd[propName];
@@ -18,10 +21,10 @@ function handlelines(configObj, newHandlers) {
         return lineObj;
     };
     const defaultFinishHandler = () => {
-        //console.log("The handler has officially ended!");
+        log.info("The handler has officially ended!");
     };
     const defaultStartHandler = () => {
-        //console.log("The handler has officially started!");
+        log.info("The handler has officially started!");
     };
     const handleLine = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
     const finishHandler = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
@@ -38,7 +41,7 @@ function handlelines(configObj, newHandlers) {
             let handledObj = handleLine(dataObj);
             if (handledObj) {
                 let handledLine = JSON.stringify(handledObj);
-                //console.log(handledLine)
+                log.debug(handledLine);
                 this.push(handledLine + '\n');
             }
         }
@@ -77,7 +80,7 @@ function handlelines(configObj, newHandlers) {
                 }
             }
             let data = resultArray.join('');
-            //console.log(data)
+            log.debug(data);
             file.contents = Buffer.from(data);
             finishHandler();
             // send the transformed file through to the next gulp plugin, and tell the stream engine that we're done with this file
@@ -92,15 +95,16 @@ function handlelines(configObj, newHandlers) {
                 // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
                 //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
                 //this is when we want to pass the file along
-                //console.log('finished')
+                log.debug('finished');
                 finishHandler();
-                self.push(file);
-                cb(returnErr);
             })
                 .on('error', function (err) {
-                //console.error(err)
-                cb(new PluginError(PLUGIN_NAME, err));
+                log.error(err);
+                self.emit('error', new PluginError(PLUGIN_NAME, err));
             });
+            // after our stream is set up (not necesarily finished) we call the callback
+            log.debug('calling callback');
+            cb(returnErr, file);
         }
     });
     startHandler();

@@ -1,14 +1,14 @@
 {
   "name": "gulp-etl-handlelines",
   "version": "1.0.0",
-  "description": "Starter for gulp plugin",
+  "description": "Utility gulp-etl plugin",
   "main": "dist/js/plugin.js",
   "typings": "dist/types/plugin.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build-codeonly": "tsc && tsc --module commonjs --outDir dist/lib",
+    "build": "tsc && tsc --module commonjs --outDir dist/lib",
     "test": "jest"
   },
   "author": "",
