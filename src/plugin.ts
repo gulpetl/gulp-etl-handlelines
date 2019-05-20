@@ -110,13 +110,15 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
           //this is when we want to pass the file along
           log.debug('finished')
           finishHandler();
-          self.push(file);
-          cb(returnErr);
         })
         .on('error', function (err: any) {
           log.error(err)
-          cb(new PluginError(PLUGIN_NAME, err))
+          self.emit('error', new PluginError(PLUGIN_NAME, err))
         })
+
+      // after our stream is set up (not necesarily finished) we call the callback
+      log.debug('calling callback')    
+      cb(returnErr, file);        
     }
 
   })
