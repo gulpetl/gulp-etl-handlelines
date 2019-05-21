@@ -40,25 +40,32 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
   let startHandler: StartCallback = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
 
-  let transformer = through2.obj(); // new transform stream, in object mode
-  // // since we're in object mode, dataLine comes as a string. Since we're counting on split
-  // // to have already been called upstream, dataLine will be a single line at a time
-  transformer._transform = function (dataLine: string, encoding: string, callback: Function) {
-    let returnErr: any = null
-    try {
-      let dataObj
-      if (dataLine.trim() != "") dataObj = JSON.parse(dataLine)
-      let handledObj = handleLine(dataObj)
-      if (handledObj) {
-        let handledLine = JSON.stringify(handledObj)
-        log.debug(handledLine)
-        this.push(handledLine + '\n');
+  
+  function newTransformer() {
+    let transformer = through2.obj(); // new transform stream, in object mode
+    // // since we're in object mode, dataLine comes as a string. Since we're counting on split
+    // // to have already been called upstream, dataLine will be a single line at a time
+    transformer._transform = function (dataLine: string, encoding: string, callback: Function) {
+      let returnErr: any = null
+      try {
+        let dataObj
+        let handledObj
+        if (dataLine.trim() != "") {
+          dataObj = JSON.parse(dataLine)
+          handledObj = handleLine(dataObj)
+        }
+        if (handledObj) {
+          let handledLine = JSON.stringify(handledObj)
+          log.debug(handledLine)
+          this.push(handledLine + '\n');
+        }
+      } catch (err) {
+        returnErr = new PluginError(PLUGIN_NAME, err);
       }
-    } catch (err) {
-      returnErr = new PluginError(PLUGIN_NAME, err);
-    }
 
-    callback(returnErr)
+      callback(returnErr)
+    }
+    return transformer
   }
 
 
@@ -80,9 +87,12 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       // we'll call handleLine on each line
       for (let dataIdx in strArray) {
         try {
-          let lineObj;
-          if (strArray[dataIdx].trim() != "") lineObj = JSON.parse(strArray[dataIdx]);
-          tempLine = handleLine(lineObj)
+          let lineObj
+          let tempLine
+          if (strArray[dataIdx].trim() != "") {
+            lineObj = JSON.parse(strArray[dataIdx])
+            tempLine = handleLine(lineObj)
+          }
           if (tempLine){
             resultArray.push(JSON.stringify(tempLine) + '\n');
           }
@@ -100,10 +110,12 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       cb(returnErr, file)
     }
     else if (file.isStream()) {
+
+      try {
       file.contents = file.contents
         // split plugin will split the file into lines
         .pipe(split())
-        .pipe(transformer)
+        .pipe(newTransformer())
         .on('finish', function () {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
           //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
@@ -119,6 +131,11 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       // after our stream is set up (not necesarily finished) we call the callback
       log.debug('calling callback')    
       cb(returnErr, file);        
+      }
+      catch (err) {
+        log.error(err)    
+        self.emit('error', new PluginError(PLUGIN_NAME, err))
+      }
     }
 
   })

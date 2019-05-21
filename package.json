@@ -1,6 +1,7 @@
 {
   "name": "gulp-etl-handlelines",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "repository": "https://github.com/gulpetl/gulp-etl-handlelines",
   "description": "Utility gulp-etl plugin",
   "main": "dist/js/plugin.js",
   "typings": "dist/types/plugin.d.ts",
@@ -11,8 +12,13 @@
     "build": "tsc && tsc --module commonjs --outDir dist/lib",
     "test": "jest"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "peterl@sbcotton.com",
+  "license": "MIT",
+  "keywords": [
+    "gulpplugin",
+    "gulp-etl"
+  ],
+  "homepage": "https://gulpetl.com",
   "dependencies": {
     "from2": "^2.3.0",
     "gulp-error-handle": "^1.0.1",

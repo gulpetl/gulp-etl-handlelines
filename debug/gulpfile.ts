@@ -39,7 +39,7 @@ function demonstrateHandlelines(callback: any) {
   log.info('gulp starting for ' + PLUGIN_NAME)
   return gulp.src('../testdata/*.ndjson',{buffer:false})
       .pipe(errorHandler(function(err:any) {
-        log.error('whoops: ' + err)
+        log.error('oops: ' + err)
         callback(err)
       }))
       // call allCaps function above for each line
