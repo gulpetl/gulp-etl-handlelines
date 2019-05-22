@@ -29,27 +29,32 @@ function handlelines(configObj, newHandlers) {
     const handleLine = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
     const finishHandler = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
     let startHandler = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
-    let transformer = through2.obj(); // new transform stream, in object mode
-    // // since we're in object mode, dataLine comes as a string. Since we're counting on split
-    // // to have already been called upstream, dataLine will be a single line at a time
-    transformer._transform = function (dataLine, encoding, callback) {
-        let returnErr = null;
-        try {
-            let dataObj;
-            if (dataLine.trim() != "")
-                dataObj = JSON.parse(dataLine);
-            let handledObj = handleLine(dataObj);
-            if (handledObj) {
-                let handledLine = JSON.stringify(handledObj);
-                log.debug(handledLine);
-                this.push(handledLine + '\n');
+    function newTransformer() {
+        let transformer = through2.obj(); // new transform stream, in object mode
+        // // since we're in object mode, dataLine comes as a string. Since we're counting on split
+        // // to have already been called upstream, dataLine will be a single line at a time
+        transformer._transform = function (dataLine, encoding, callback) {
+            let returnErr = null;
+            try {
+                let dataObj;
+                let handledObj;
+                if (dataLine.trim() != "") {
+                    dataObj = JSON.parse(dataLine);
+                    handledObj = handleLine(dataObj);
+                }
+                if (handledObj) {
+                    let handledLine = JSON.stringify(handledObj);
+                    log.debug(handledLine);
+                    this.push(handledLine + '\n');
+                }
             }
-        }
-        catch (err) {
-            returnErr = new PluginError(PLUGIN_NAME, err);
-        }
-        callback(returnErr);
-    };
+            catch (err) {
+                returnErr = new PluginError(PLUGIN_NAME, err);
+            }
+            callback(returnErr);
+        };
+        return transformer;
+    }
     // creating a stream through which each file will pass
     // see https://stackoverflow.com/a/52432089/5578474 for a note on the "this" param
     const strm = through2.obj(function (file, encoding, cb) {
@@ -68,9 +73,11 @@ function handlelines(configObj, newHandlers) {
             for (let dataIdx in strArray) {
                 try {
                     let lineObj;
-                    if (strArray[dataIdx].trim() != "")
+                    let tempLine;
+                    if (strArray[dataIdx].trim() != "") {
                         lineObj = JSON.parse(strArray[dataIdx]);
-                    tempLine = handleLine(lineObj);
+                        tempLine = handleLine(lineObj);
+                    }
                     if (tempLine) {
                         resultArray.push(JSON.stringify(tempLine) + '\n');
                     }
@@ -87,24 +94,30 @@ function handlelines(configObj, newHandlers) {
             cb(returnErr, file);
         }
         else if (file.isStream()) {
-            file.contents = file.contents
-                // split plugin will split the file into lines
-                .pipe(split())
-                .pipe(transformer)
-                .on('finish', function () {
-                // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
-                //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
-                //this is when we want to pass the file along
-                log.debug('finished');
-                finishHandler();
-            })
-                .on('error', function (err) {
+            try {
+                file.contents = file.contents
+                    // split plugin will split the file into lines
+                    .pipe(split())
+                    .pipe(newTransformer())
+                    .on('finish', function () {
+                    // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
+                    //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
+                    //this is when we want to pass the file along
+                    log.debug('finished');
+                    finishHandler();
+                })
+                    .on('error', function (err) {
+                    log.error(err);
+                    self.emit('error', new PluginError(PLUGIN_NAME, err));
+                });
+                // after our stream is set up (not necesarily finished) we call the callback
+                log.debug('calling callback');
+                cb(returnErr, file);
+            }
+            catch (err) {
                 log.error(err);
                 self.emit('error', new PluginError(PLUGIN_NAME, err));
-            });
-            // after our stream is set up (not necesarily finished) we call the callback
-            log.debug('calling callback');
-            cb(returnErr, file);
+            }
         }
     });
     startHandler();
