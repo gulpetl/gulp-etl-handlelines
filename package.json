@@ -1,6 +1,6 @@
 {
   "name": "gulp-etl-handlelines",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "repository": "https://github.com/gulpetl/gulp-etl-handlelines",
   "description": "Utility gulp-etl plugin",
   "main": "dist/js/plugin.js",

@@ -34,11 +34,13 @@ Send in callbacks as a second parameter in the form:
 
 ##### Sample gulpfile.js
 ```
-let handleLines = require('gulp-etl-handlelines')
+var handleLines = require('gulp-etl-handlelines').handlelines
+// for TypeScript use this line instead:
+// import { handlinelines } from 'gulp-etl-handlelines'
 
-const handleLine = (lineObj) => {
+const linehandler = (lineObj) => {
     // return null to remove this line
-    if (!lineObj.record || !lineObj.record["TestValue"]) {return null}
+    if (!lineObj.record || lineObj.record["TestValue"] == 'illegalValue') {return null}
     
     // optionally make changes to lineObj
     lineObj.record["NewProperty"] = "asdf"
@@ -50,7 +52,7 @@ const handleLine = (lineObj) => {
 exports.default = function() {
     return src('data/*.ndjson')
     // pipe the files through our handlelines plugin
-    .pipe(handlelines.handlelines({}, { transformCallback: handleLine }))
+    .pipe(handlelines({}, { transformCallback: linehandler }))
     .pipe(dest('output/'));
 }
 ```

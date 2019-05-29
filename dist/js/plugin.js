@@ -31,8 +31,8 @@ function handlelines(configObj, newHandlers) {
     let startHandler = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
     function newTransformer() {
         let transformer = through2.obj(); // new transform stream, in object mode
-        // // since we're in object mode, dataLine comes as a string. Since we're counting on split
-        // // to have already been called upstream, dataLine will be a single line at a time
+        transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
+        // since we're counting on split to have already been called upstream, dataLine will be a single line at a time
         transformer._transform = function (dataLine, encoding, callback) {
             let returnErr = null;
             try {
@@ -44,8 +44,14 @@ function handlelines(configObj, newHandlers) {
                 }
                 if (handledObj) {
                     let handledLine = JSON.stringify(handledObj);
+                    if (this._onFirstLine) {
+                        this._onFirstLine = false;
+                    }
+                    else {
+                        handledLine = '\n' + handledLine;
+                    }
                     log.debug(handledLine);
-                    this.push(handledLine + '\n');
+                    this.push(handledLine);
                 }
             }
             catch (err) {
@@ -77,9 +83,13 @@ function handlelines(configObj, newHandlers) {
                     if (strArray[dataIdx].trim() != "") {
                         lineObj = JSON.parse(strArray[dataIdx]);
                         tempLine = handleLine(lineObj);
-                    }
-                    if (tempLine) {
-                        resultArray.push(JSON.stringify(tempLine) + '\n');
+                        // add newline before every line execept the first
+                        if (dataIdx != "0") {
+                            resultArray.push('\n');
+                        }
+                        if (tempLine) {
+                            resultArray.push(JSON.stringify(tempLine));
+                        }
                     }
                 }
                 catch (err) {
