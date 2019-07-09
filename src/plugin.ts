@@ -24,7 +24,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   let propsToAdd = configObj.propsToAdd
 
   // handleLine could be the only needed piece to be replaced for most gulp-etl plugins
-  const defaultHandleLine = (lineObj: object): object | null => {
+  const defaultHandleLine = (lineObj: object): object | Array<object> | null => {
     for (let propName in propsToAdd) {
       (lineObj as any)[propName] = propsToAdd[propName]
     }
@@ -49,21 +49,36 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       let returnErr: any = null
       try {
         let dataObj
-        let handledObj
+        let handledObj:any
         if (dataLine.trim() != "") {
           dataObj = JSON.parse(dataLine)
           handledObj = handleLine(dataObj)
         }
         if (handledObj) {
-          let handledLine = JSON.stringify(handledObj)
-          if (this._onFirstLine) {
-            this._onFirstLine = false;
+          if (Array.isArray(handledObj)) {
+            for (var i = 0; i < handledObj.length; i++) {
+              let handledLine = JSON.stringify(handledObj[i])
+              if (this._onFirstLine) {
+                this._onFirstLine = false;
+              }
+              else {
+                handledLine = '\n' + handledLine;
+              }
+              log.debug(handledLine)
+              this.push(handledLine);
+            }
           }
           else {
-            handledLine = '\n' + handledLine;
+            let handledLine = JSON.stringify(handledObj)
+            if (this._onFirstLine) {
+              this._onFirstLine = false;
+            }
+            else {
+              handledLine = '\n' + handledLine;
+            }
+            log.debug(handledLine)
+            this.push(handledLine);
           }
-          log.debug(handledLine)
-          this.push(handledLine);
         }
       } catch (err) {
         returnErr = new PluginError(PLUGIN_NAME, err);
@@ -103,7 +118,15 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
               resultArray.push('\n');
             }
             if (tempLine){
-              resultArray.push(JSON.stringify(tempLine));
+              if (Array.isArray(tempLine)) {
+                for (var i = 0; i < tempLine.length; i++) {
+                  resultArray.push(JSON.stringify(tempLine[i]))
+                  resultArray.push('\n')
+                }
+              }
+              else {
+                resultArray.push(JSON.stringify(tempLine))
+              }
             }
           }
         } catch (err) {
