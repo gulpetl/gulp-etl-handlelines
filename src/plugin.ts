@@ -39,8 +39,18 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   const handleLine: TransformCallback = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
   let startHandler: StartCallback = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
-
   
+  function StreamPush (Transfromer:any , handledLine:any) {
+    if (Transfromer._onFirstLine) {
+      Transfromer._onFirstLine = false;
+    }
+    else {
+      handledLine = '\n' + handledLine;
+    }
+    log.debug(handledLine)
+    Transfromer.push(handledLine);
+  }
+
   function newTransformer() {
     let transformer = through2.obj(); // new transform stream, in object mode
     transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
@@ -58,26 +68,12 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
           if (Array.isArray(handledObj)) {
             for (var i = 0; i < handledObj.length; i++) {
               let handledLine = JSON.stringify(handledObj[i])
-              if (this._onFirstLine) {
-                this._onFirstLine = false;
-              }
-              else {
-                handledLine = '\n' + handledLine;
-              }
-              log.debug(handledLine)
-              this.push(handledLine);
+              StreamPush(this, handledLine);
             }
           }
           else {
             let handledLine = JSON.stringify(handledObj)
-            if (this._onFirstLine) {
-              this._onFirstLine = false;
-            }
-            else {
-              handledLine = '\n' + handledLine;
-            }
-            log.debug(handledLine)
-            this.push(handledLine);
+            StreamPush(this, handledLine);
           }
         }
       } catch (err) {

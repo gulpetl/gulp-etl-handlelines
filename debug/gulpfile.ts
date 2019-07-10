@@ -37,7 +37,7 @@ const allCaps = (lineObj: object): object => {
 
 function demonstrateHandlelines(callback: any) {
   log.info('gulp starting for ' + PLUGIN_NAME)
-  return gulp.src('../testdata/*.ndjson',{buffer:true})
+  return gulp.src('../testdata/*.ndjson',{buffer:false})
       .pipe(errorHandler(function(err:any) {
         log.error('oops: ' + err)
         callback(err)
