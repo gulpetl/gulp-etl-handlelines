@@ -102,9 +102,6 @@ function handlelines(configObj, newHandlers) {
                             if (Array.isArray(tempLine)) {
                                 for (var i = 0; i < tempLine.length; i++) {
                                     resultArray.push(JSON.stringify(tempLine[i]));
-                                    if (i = tempLine.length - 1) {
-                                        resultArray.push('\n');
-                                    }
                                 }
                             }
                             else {
