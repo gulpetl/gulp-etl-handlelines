@@ -117,7 +117,10 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
               if (Array.isArray(tempLine)) {
                 for (var i = 0; i < tempLine.length; i++) {
                   resultArray.push(JSON.stringify(tempLine[i]))
-                  resultArray.push('\n')
+                  if(i ! = tempLine.length-2){
+                    resultArray.push('\n')
+                  }
+                  
                 }
               }
               else {
