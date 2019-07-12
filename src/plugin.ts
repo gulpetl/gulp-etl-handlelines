@@ -8,7 +8,7 @@ import * as loglevel from 'loglevel'
 const log = loglevel.getLogger(PLUGIN_NAME) // get a logger instance based on the project name
 log.setLevel((process.env.DEBUG_LEVEL || 'warn') as loglevel.LogLevelDesc)
 
-export type TransformCallback = (lineObj: object) => object | null
+export type TransformCallback = (lineObj: object) => object | Array<object> | null
 export type FinishCallback = () => void
 export type StartCallback = () => void
 export type allCallbacks = {

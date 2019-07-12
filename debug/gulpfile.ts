@@ -38,8 +38,10 @@ const allCaps = (lineObj: object): object => {
 const ArraysTesting = (lineObj: object): Array<object> | Object => {
   let lineObjArray
   let Obj:any = lineObj
-  if(Obj['type'] == "RECORD") {
-    lineObjArray = [lineObj, {"type":"RECORD","stream":"ArrayTest","record":{"VALUE":"ArrayTestValue2"}}]
+  //introducing a 10% dicounted price for all mercedes cars
+  if(Obj['type'] == "RECORD" && Obj['record']['carModel'] == "Mercedes") {
+    let price:String = (Number(Obj['record']['price'])*90/100).toString()
+    lineObjArray = [lineObj, {"type":"RECORD","stream":"Discount","record":{"Discounted Price":price}}]
     return lineObjArray
   } 
   return lineObj
@@ -56,7 +58,7 @@ function demonstrateHandlelines(callback: any) {
       
       //FOR ARRAY TESTING
       //call ArraysTesting function above for each line
-      //.pipe(handlelines({}, { transformCallback: ArraysTesting }))
+      .pipe(handlelines({}, { transformCallback: ArraysTesting }))
 
       // call allCaps function above for each line
       .pipe(handlelines({}, { transformCallback: allCaps }))
