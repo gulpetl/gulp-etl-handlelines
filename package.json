@@ -1,6 +1,6 @@
 {
   "name": "gulp-etl-handlelines",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "repository": "https://github.com/gulpetl/gulp-etl-handlelines",
   "description": "Utility gulp-etl plugin",
   "main": "dist/js/plugin.js",
@@ -37,6 +37,7 @@
     "@types/node": "^10.14.12",
     "@types/vinyl": "^2.0.3",
     "gulp": "^4.0.2",
+    "gulp-rename": "^1.4.0",
     "jest": "^24.8.0",
     "jest-spec-reporter": "^1.0.6",
     "rimraf": "^2.6.3",

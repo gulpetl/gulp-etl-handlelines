@@ -31,7 +31,7 @@ const allCaps = (lineObj: object): object => {
   return lineObj
 }
 
-// allArrays makes all record Objects into arrays
+// ArraysTesting needs to return more than one record when processing certain lines, so returns an array of lines
 const ArraysTesting = (lineObj: object): Array<object> | Object => {
   let lineObjArray
   let Obj:any = lineObj
@@ -39,7 +39,7 @@ const ArraysTesting = (lineObj: object): Array<object> | Object => {
   if(Obj['type'] == "RECORD" && Obj['record']['carModel'] == "Mercedes") {
     let price:String = (Number(Obj['record']['price'])*90/100).toString()
     lineObjArray = [lineObj, {"type":"RECORD","stream":"Discount","record":{"Discounted Price":price}}]
-    return lineObjArray
+    return lineObjArray // return an array in order to return multiple records from processing a single one
   } 
   return lineObj
 }
