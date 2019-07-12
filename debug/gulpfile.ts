@@ -34,6 +34,19 @@ const allCaps = (lineObj: object): object => {
   return lineObj
 }
 
+// allArrays makes all record Objects into arrays
+const ArraysTesting = (lineObj: object): Array<object> | Object => {
+  let lineObjArray
+  let Obj:any = lineObj
+  //introducing a 10% dicounted price for all mercedes cars
+  if(Obj['type'] == "RECORD" && Obj['record']['carModel'] == "Mercedes") {
+    let price:String = (Number(Obj['record']['price'])*90/100).toString()
+    lineObjArray = [lineObj, {"type":"RECORD","stream":"Discount","record":{"Discounted Price":price}}]
+    return lineObjArray
+  } 
+  return lineObj
+}
+
 
 function demonstrateHandlelines(callback: any) {
   log.info('gulp starting for ' + PLUGIN_NAME)
@@ -42,6 +55,11 @@ function demonstrateHandlelines(callback: any) {
         log.error('oops: ' + err)
         callback(err)
       }))
+      
+      //FOR ARRAY TESTING
+      //call ArraysTesting function above for each line
+      .pipe(handlelines({}, { transformCallback: ArraysTesting }))
+
       // call allCaps function above for each line
       .pipe(handlelines({}, { transformCallback: allCaps }))
       // call the built-in handleline callback (by passing no callbacks to override the built-in default), which adds an extra param

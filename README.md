@@ -18,7 +18,7 @@ This is a **[gulp-etl](https://gulpetl.com/)** plugin, and as such it is a [gulp
 will contain any info the plugin needs.
 
 In addition, this plugin also accepts a TransformCallback function. That function will receive a 
-Singer message object (a [RECORD](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#record-message), [SCHEMA](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#schema-message) or [STATE](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#state-message)) and is expected to return either the Singer message object (whether transformed or unchanged) to be passed downstream, or ```null``` to remove the message from the stream).
+Singer message object (a [RECORD](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#record-message), [SCHEMA](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#schema-message) or [STATE](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#state-message)) and is expected to return either the Singer message object (whether transformed or unchanged) to be passed downstream, an array of singer messages or ```null``` to remove the message from the stream).
 
 This plugin also accepts a FinishCallback and StartCallback, which are functions that are executed before and after the TransformCallback. The FinishCallback can be used to manage data stored collected from the stream. 
 

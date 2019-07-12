@@ -6,9 +6,9 @@ const pkginfo = require('pkginfo')(module); // project package.json info into mo
 const PLUGIN_NAME = module.exports.name;
 import * as loglevel from 'loglevel'
 const log = loglevel.getLogger(PLUGIN_NAME) // get a logger instance based on the project name
-log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
+log.setLevel((process.env.DEBUG_LEVEL || 'warn') as loglevel.LogLevelDesc)
 
-export type TransformCallback = (lineObj: object) => object | null
+export type TransformCallback = (lineObj: object) => object | Array<object> | null
 export type FinishCallback = () => void
 export type StartCallback = () => void
 export type allCallbacks = {
@@ -24,7 +24,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   let propsToAdd = configObj.propsToAdd
 
   // handleLine could be the only needed piece to be replaced for most gulp-etl plugins
-  const defaultHandleLine = (lineObj: object): object | null => {
+  const defaultHandleLine = (lineObj: object): object | Array<object> | null => {
     for (let propName in propsToAdd) {
       (lineObj as any)[propName] = propsToAdd[propName]
     }
@@ -39,8 +39,18 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   const handleLine: TransformCallback = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
   let startHandler: StartCallback = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
-
   
+  function StreamPush (Transfromer:any , handledLine:any) {
+    if (Transfromer._onFirstLine) {
+      Transfromer._onFirstLine = false;
+    }
+    else {
+      handledLine = '\n' + handledLine;
+    }
+    log.debug(handledLine)
+    Transfromer.push(handledLine);
+  }
+
   function newTransformer() {
     let transformer = through2.obj(); // new transform stream, in object mode
     transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
@@ -49,21 +59,22 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       let returnErr: any = null
       try {
         let dataObj
-        let handledObj
+        let handledObj:any
         if (dataLine.trim() != "") {
           dataObj = JSON.parse(dataLine)
           handledObj = handleLine(dataObj)
         }
         if (handledObj) {
-          let handledLine = JSON.stringify(handledObj)
-          if (this._onFirstLine) {
-            this._onFirstLine = false;
+          if (Array.isArray(handledObj)) {
+            for (var i = 0; i < handledObj.length; i++) {
+              let handledLine = JSON.stringify(handledObj[i])
+              StreamPush(this, handledLine);
+            }
           }
           else {
-            handledLine = '\n' + handledLine;
+            let handledLine = JSON.stringify(handledObj)
+            StreamPush(this, handledLine);
           }
-          log.debug(handledLine)
-          this.push(handledLine);
         }
       } catch (err) {
         returnErr = new PluginError(PLUGIN_NAME, err);
@@ -103,7 +114,17 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
               resultArray.push('\n');
             }
             if (tempLine){
-              resultArray.push(JSON.stringify(tempLine));
+              if (Array.isArray(tempLine)) {
+                for (var i = 0; i < tempLine.length; i++) {
+                  resultArray.push(JSON.stringify(tempLine[i]))
+                  if(i != tempLine.length-1) {
+                    resultArray.push('\n')
+                  }    
+                }
+              }
+              else {
+                resultArray.push(JSON.stringify(tempLine))
+              }
             }
           }
         } catch (err) {

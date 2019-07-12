@@ -29,6 +29,16 @@ function handlelines(configObj, newHandlers) {
     const handleLine = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
     const finishHandler = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
     let startHandler = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
+    function StreamPush(Transfromer, handledLine) {
+        if (Transfromer._onFirstLine) {
+            Transfromer._onFirstLine = false;
+        }
+        else {
+            handledLine = '\n' + handledLine;
+        }
+        log.debug(handledLine);
+        Transfromer.push(handledLine);
+    }
     function newTransformer() {
         let transformer = through2.obj(); // new transform stream, in object mode
         transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
@@ -43,15 +53,16 @@ function handlelines(configObj, newHandlers) {
                     handledObj = handleLine(dataObj);
                 }
                 if (handledObj) {
-                    let handledLine = JSON.stringify(handledObj);
-                    if (this._onFirstLine) {
-                        this._onFirstLine = false;
+                    if (Array.isArray(handledObj)) {
+                        for (var i = 0; i < handledObj.length; i++) {
+                            let handledLine = JSON.stringify(handledObj[i]);
+                            StreamPush(this, handledLine);
+                        }
                     }
                     else {
-                        handledLine = '\n' + handledLine;
+                        let handledLine = JSON.stringify(handledObj);
+                        StreamPush(this, handledLine);
                     }
-                    log.debug(handledLine);
-                    this.push(handledLine);
                 }
             }
             catch (err) {
@@ -88,7 +99,17 @@ function handlelines(configObj, newHandlers) {
                             resultArray.push('\n');
                         }
                         if (tempLine) {
-                            resultArray.push(JSON.stringify(tempLine));
+                            if (Array.isArray(tempLine)) {
+                                for (var i = 0; i < tempLine.length; i++) {
+                                    resultArray.push(JSON.stringify(tempLine[i]));
+                                    if (i != tempLine.length - 1) {
+                                        resultArray.push('\n');
+                                    }
+                                }
+                            }
+                            else {
+                                resultArray.push(JSON.stringify(tempLine));
+                            }
                         }
                     }
                 }
