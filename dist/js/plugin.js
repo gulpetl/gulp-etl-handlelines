@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const through2 = require('through2');
 const split = require('split2');
 const PluginError = require("plugin-error");
-const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
+require('pkginfo')(module); // project package.json info into module.exports
 const PLUGIN_NAME = module.exports.name;
 const loglevel = require("loglevel");
 const log = loglevel.getLogger(PLUGIN_NAME); // get a logger instance based on the project name

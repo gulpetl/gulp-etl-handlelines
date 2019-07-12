@@ -2,7 +2,7 @@ const through2 = require('through2')
 import Vinyl = require('vinyl')
 const split = require('split2')
 import PluginError = require('plugin-error');
-const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
+require('pkginfo')(module); // project package.json info into module.exports
 const PLUGIN_NAME = module.exports.name;
 import * as loglevel from 'loglevel'
 const log = loglevel.getLogger(PLUGIN_NAME) // get a logger instance based on the project name

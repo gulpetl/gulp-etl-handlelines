@@ -1,4 +1,4 @@
-export declare type TransformCallback = (lineObj: object) => object | null;
+export declare type TransformCallback = (lineObj: object) => object | Array<object> | null;
 export declare type FinishCallback = () => void;
 export declare type StartCallback = () => void;
 export declare type allCallbacks = {

@@ -3,14 +3,11 @@ import {handlelines} from '../src/plugin'
 export { handlelines, TransformCallback } from '../src/plugin';
 import * as loglevel from 'loglevel'
 const log = loglevel.getLogger('gulpfile')
-log.setLevel((process.env.DEBUG_LEVEL || 'warn') as log.LogLevelDesc)
+log.setLevel((process.env.DEBUG_LEVEL || 'warn') as loglevel.LogLevelDesc)
 import * as rename from 'gulp-rename'
 const errorHandler = require('gulp-error-handle'); // handle all errors in one handler, but still stop the stream if there are errors
 
-import * as vinylPaths from 'vinyl-paths';
-import * as del from 'del';
-
-const pkginfo = require('pkginfo')(module); // project package.json info into module.exports
+require('pkginfo')(module); // project package.json info into module.exports
 const PLUGIN_NAME = module.exports.name;
 
 // control the plugin's logging level separately from this 'gulpfile' logging
@@ -80,10 +77,4 @@ function demonstrateHandlelines(callback: any) {
     }
 
 
-
-    function test(callback: any) {
-      log.info('This seems to run only after a successful run of demonstrateHandlelines! Do deletions here?')
-      callback()
-    }
-
-exports.default = gulp.series(demonstrateHandlelines, test)
+exports.default = demonstrateHandlelines
