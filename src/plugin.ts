@@ -8,9 +8,9 @@ import * as loglevel from 'loglevel'
 const log = loglevel.getLogger(PLUGIN_NAME) // get a logger instance based on the project name
 log.setLevel((process.env.DEBUG_LEVEL || 'warn') as loglevel.LogLevelDesc)
 
-export type TransformCallback = (lineObj: object) => object | Array<object> | null
-export type FinishCallback = () => void
-export type StartCallback = () => void
+export type TransformCallback = (lineObj: object, context: any) => object | Array<object> | null
+export type FinishCallback = (context: any) => void
+export type StartCallback = (context: any) => void
 export type allCallbacks = {
   transformCallback?: TransformCallback,
   finishCallback?: FinishCallback,
@@ -40,18 +40,18 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
   const finishHandler: FinishCallback = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
   let startHandler: StartCallback = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
   
-  function StreamPush (Transfromer:any , handledLine:any) {
-    if (Transfromer._onFirstLine) {
-      Transfromer._onFirstLine = false;
+  function StreamPush (transformer:any , handledLine:any) {
+    if (transformer._onFirstLine) {
+      transformer._onFirstLine = false;
     }
     else {
       handledLine = '\n' + handledLine;
     }
     log.debug(handledLine)
-    Transfromer.push(handledLine);
+    transformer.push(handledLine);
   }
 
-  function newTransformer() {
+  function newTransformer(context:any) {
     let transformer = through2.obj(); // new transform stream, in object mode
     transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
     // since we're counting on split to have already been called upstream, dataLine will be a single line at a time
@@ -62,7 +62,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
         let handledObj:any
         if (dataLine.trim() != "") {
           dataObj = JSON.parse(dataLine)
-          handledObj = handleLine(dataObj)
+          handledObj = handleLine(dataObj, context)
         }
         if (handledObj) {
           if (Array.isArray(handledObj)) {
@@ -92,6 +92,12 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
     const self = this
     let returnErr: any = null
 
+    // initialize a context object if needed; attached to the file.data object (compatible with gulp-data)
+    if (file && !file.data) file.data = {}    
+    if (!file.data.context) file.data.context = {}    
+  
+    startHandler(file.data.context);
+
     if (file.isNull()) {
       // return empty file
       return cb(returnErr, file)
@@ -108,7 +114,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
           let tempLine
           if (strArray[dataIdx].trim() != "") {
             lineObj = JSON.parse(strArray[dataIdx])
-            tempLine = handleLine(lineObj)
+            tempLine = handleLine(lineObj, file.data.context)
             // add newline before every line execept the first
             if (dataIdx != "0") {
               resultArray.push('\n');
@@ -135,7 +141,7 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       log.debug(data)
       file.contents = Buffer.from(data)
 
-      finishHandler();
+      finishHandler(file.data.context);
 
       // send the transformed file through to the next gulp plugin, and tell the stream engine that we're done with this file
       cb(returnErr, file)
@@ -146,13 +152,13 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
       file.contents = file.contents
         // split plugin will split the file into lines
         .pipe(split())
-        .pipe(newTransformer())
+        .pipe(newTransformer(file.data.context))
         .on('finish', function () {
           // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
           //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
           //this is when we want to pass the file along
           log.debug('finished')
-          finishHandler();
+          finishHandler(file.data.context);
         })
         .on('error', function (err: any) {
           log.error(err)
@@ -171,6 +177,5 @@ export function handlelines(configObj: any, newHandlers?: allCallbacks) {
 
   })
 
-  startHandler();
   return strm
 }

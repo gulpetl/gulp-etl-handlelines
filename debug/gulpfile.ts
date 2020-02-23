@@ -16,7 +16,12 @@ const PLUGIN_NAME = module.exports.name;
 
 
 // allCaps makes sure all string properties on the top level of lineObj have values that are all caps
-const allCaps = (lineObj: object): object => {
+const allCaps = (lineObj: object, context:any): object => {
+  // add a linenum property to each line to demonstrate how the context object tracks context per file
+  if (!context.lineNum) context.lineNum = 1
+  else context.lineNum++
+  (<any>lineObj).lineNum = context.lineNum;
+  
   log.debug(lineObj)
   for (let propName in lineObj) {
     let obj = (<any>lineObj)
@@ -32,7 +37,7 @@ const allCaps = (lineObj: object): object => {
 }
 
 // ArraysTesting needs to return more than one record when processing certain lines, so returns an array of lines
-const ArraysTesting = (lineObj: object): Array<object> | Object => {
+const ArraysTesting = (lineObj: object, context:any): Array<object> | Object => {
   let lineObjArray
   let Obj:any = lineObj
   //introducing a 10% dicounted price for all mercedes cars

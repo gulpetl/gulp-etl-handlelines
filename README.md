@@ -4,7 +4,7 @@ Utility function providing a "handleline" callback which is called for every rec
 
 This is a **[gulp-etl](https://gulpetl.com/)** plugin, and as such it is a [gulp](https://gulpjs.com/) plugin. **gulp-etl** plugins work with [ndjson](http://ndjson.org/) data streams/files which we call **Message Streams** and which are compliant with the [Singer specification](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#output). Message Streams look like this:
 
-```
+``` ndjson
 {"type": "SCHEMA", "stream": "users", "key_properties": ["id"], "schema": {"required": ["id"], "type": "object", "properties": {"id": {"type": "integer"}}}}
 {"type": "RECORD", "stream": "users", "record": {"id": 1, "name": "Chris"}}
 {"type": "RECORD", "stream": "users", "record": {"id": 2, "name": "Mike"}}
@@ -13,18 +13,21 @@ This is a **[gulp-etl](https://gulpetl.com/)** plugin, and as such it is a [gulp
 {"type": "STATE", "value": {"users": 2, "locations": 1}}
 ```
 
-### Usage
+## Usage ##
+
 **gulp-etl** plugins accept a configObj as its first parameter. The configObj
 will contain any info the plugin needs.
 
-In addition, this plugin also accepts a TransformCallback function. That function will receive a 
+In addition, this plugin also accepts a TransformCallback function. That function will receive a
 Singer message object (a [RECORD](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#record-message), [SCHEMA](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#schema-message) or [STATE](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md#state-message)) and is expected to return either the Singer message object (whether transformed or unchanged) to be passed downstream, an array of singer messages or ```null``` to remove the message from the stream).
 
-This plugin also accepts a FinishCallback and StartCallback, which are functions that are executed before and after the TransformCallback. The FinishCallback can be used to manage data stored collected from the stream. 
+This plugin also accepts a FinishCallback and StartCallback, which are functions that are executed before and after the TransformCallback. The FinishCallback can be used to manage data stored collected from the stream.
 
-Send in callbacks as a second parameter in the form: 
+All callbacks are passed a `context` object, which is created per-file and allows the callbacks to persist their data across calls. It follows the API suggested by [gulp-data](https://www.npmjs.com/package/gulp-data) and can be set or retrieved by other plugins as `file.data.config`
 
-```
+Send in callbacks as a second parameter in the form:
+
+``` javascript
 {
     transformCallback: tranformFunction,
     finishCallback: finishFunction,
@@ -32,16 +35,23 @@ Send in callbacks as a second parameter in the form:
 }
 ```
 
-##### Sample gulpfile.js
-```
+### Sample gulpfile.js ###
+
+``` javascript
 var handleLines = require('gulp-etl-handlelines').handlelines
 // for TypeScript use this line instead:
 // import { handlinelines } from 'gulp-etl-handlelines'
 
-const linehandler = (lineObj) => {
+const linehandler = (lineObj, context) => {
+    // add a linenum property to each line to demonstrate how the context object tracks context per file
+    if (!context.lineNum) context.lineNum = 1
+    else context.lineNum++
+    lineObj.lineNum = context.lineNum;
+
+
     // return null to remove this line
     if (!lineObj.record || lineObj.record["TestValue"] == 'illegalValue') {return null}
-    
+
     // optionally make changes to lineObj
     lineObj.record["NewProperty"] = "asdf"
 
@@ -56,28 +66,27 @@ exports.default = function() {
     .pipe(dest('output/'));
 }
 ```
-### Model Plugin
+
+### Model Plugin ###
+
 This plugin is intended to be a model **gulp-etl** plugin, usable as a template to be forked to create new plugins for other uses. It is compliant with [best practices for gulp plugins](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/guidelines.md#what-does-a-good-plugin-look-like), and it properly handles both [buffers](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/using-buffers.md) and [streams](https://github.com/gulpjs/gulp/blob/master/docs/writing-a-plugin/dealing-with-streams.md).
 
+### Quick Start ###
 
-
-### Quick Start
-* Dependencies: 
-    * [git](https://git-scm.com/downloads)
-    * [nodejs](https://nodejs.org/en/download/releases/) - At least v6.3 (6.9 for Windows) required for TypeScript debugging
-    * npm (installs with Node)
-    * typescript - installed as a development dependency
+* Dependencies:
+  * [git](https://git-scm.com/downloads)
+  * [nodejs](https://nodejs.org/en/download/releases/) - At least v6.3 (6.9 for Windows) required for TypeScript debugging
+  * npm (installs with Node)
+  * typescript - installed as a development dependency
 * Clone this repo and run `npm install` to install npm packages
 * Debug: with [VScode](https://code.visualstudio.com/download) use `Open Folder` to open the project folder, then hit F5 to debug. This runs without compiling to javascript using [ts-node](https://www.npmjs.com/package/ts-node)
 * Test: `npm test` or `npm t`
 * Compile to javascript: `npm run build`
 
-### Testing
+### Testing ###
 
 We are using [Jest](https://facebook.github.io/jest/docs/en/getting-started.html) for our testing. Each of our tests are in the `test` folder.
 
-- Run `npm test` to run the test suites
-
-
+*-* Run `npm test` to run the test suites
 
 Note: This document is written in [Markdown](https://daringfireball.net/projects/markdown/). We like to use [Typora](https://typora.io/) and [Markdown Preview Plus](https://chrome.google.com/webstore/detail/markdown-preview-plus/febilkbfcbhebfnokafefeacimjdckgl?hl=en-US) for our Markdown work..

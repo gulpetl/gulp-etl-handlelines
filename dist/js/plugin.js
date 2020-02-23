@@ -29,17 +29,17 @@ function handlelines(configObj, newHandlers) {
     const handleLine = newHandlers && newHandlers.transformCallback ? newHandlers.transformCallback : defaultHandleLine;
     const finishHandler = newHandlers && newHandlers.finishCallback ? newHandlers.finishCallback : defaultFinishHandler;
     let startHandler = newHandlers && newHandlers.startCallback ? newHandlers.startCallback : defaultStartHandler;
-    function StreamPush(Transfromer, handledLine) {
-        if (Transfromer._onFirstLine) {
-            Transfromer._onFirstLine = false;
+    function StreamPush(transformer, handledLine) {
+        if (transformer._onFirstLine) {
+            transformer._onFirstLine = false;
         }
         else {
             handledLine = '\n' + handledLine;
         }
         log.debug(handledLine);
-        Transfromer.push(handledLine);
+        transformer.push(handledLine);
     }
-    function newTransformer() {
+    function newTransformer(context) {
         let transformer = through2.obj(); // new transform stream, in object mode
         transformer._onFirstLine = true; // we have to handle the first line differently, so we set a flag
         // since we're counting on split to have already been called upstream, dataLine will be a single line at a time
@@ -50,7 +50,7 @@ function handlelines(configObj, newHandlers) {
                 let handledObj;
                 if (dataLine.trim() != "") {
                     dataObj = JSON.parse(dataLine);
-                    handledObj = handleLine(dataObj);
+                    handledObj = handleLine(dataObj, context);
                 }
                 if (handledObj) {
                     if (Array.isArray(handledObj)) {
@@ -77,6 +77,12 @@ function handlelines(configObj, newHandlers) {
     const strm = through2.obj(function (file, encoding, cb) {
         const self = this;
         let returnErr = null;
+        // initialize a context object if needed; attached to the file.data object (compatible with gulp-data)
+        if (file && !file.data)
+            file.data = {};
+        if (!file.data.context)
+            file.data.context = {};
+        startHandler(file.data.context);
         if (file.isNull()) {
             // return empty file
             return cb(returnErr, file);
@@ -93,7 +99,7 @@ function handlelines(configObj, newHandlers) {
                     let tempLine;
                     if (strArray[dataIdx].trim() != "") {
                         lineObj = JSON.parse(strArray[dataIdx]);
-                        tempLine = handleLine(lineObj);
+                        tempLine = handleLine(lineObj, file.data.context);
                         // add newline before every line execept the first
                         if (dataIdx != "0") {
                             resultArray.push('\n');
@@ -120,7 +126,7 @@ function handlelines(configObj, newHandlers) {
             let data = resultArray.join('');
             log.debug(data);
             file.contents = Buffer.from(data);
-            finishHandler();
+            finishHandler(file.data.context);
             // send the transformed file through to the next gulp plugin, and tell the stream engine that we're done with this file
             cb(returnErr, file);
         }
@@ -129,13 +135,13 @@ function handlelines(configObj, newHandlers) {
                 file.contents = file.contents
                     // split plugin will split the file into lines
                     .pipe(split())
-                    .pipe(newTransformer())
+                    .pipe(newTransformer(file.data.context))
                     .on('finish', function () {
                     // using finish event here instead of end since this is a Transform stream   https://nodejs.org/api/stream.html#stream_events_finish_and_end
                     //the 'finish' event is emitted after stream.end() is called and all chunks have been processed by stream._transform()
                     //this is when we want to pass the file along
                     log.debug('finished');
-                    finishHandler();
+                    finishHandler(file.data.context);
                 })
                     .on('error', function (err) {
                     log.error(err);
@@ -151,7 +157,6 @@ function handlelines(configObj, newHandlers) {
             }
         }
     });
-    startHandler();
     return strm;
 }
 exports.handlelines = handlelines;
