@@ -23,15 +23,18 @@ Singer message object (a [RECORD](https://github.com/singer-io/getting-started/b
 
 This plugin also accepts a FinishCallback and StartCallback, which are functions that are executed before and after the TransformCallback. The FinishCallback can be used to manage data stored collected from the stream.
 
-All callbacks are passed a `context` object, which is created per-file and allows the callbacks to persist their data across calls. It follows the API suggested by [gulp-data](https://www.npmjs.com/package/gulp-data) and can be set or retrieved by other plugins as `file.data.config`
+All callbacks are passed two objects:
+
+* a `context` object, which is created per-file and allows the callbacks to persist their data across calls. It follows the API suggested by [gulp-data](https://www.npmjs.com/package/gulp-data) and can be set or retrieved by other plugins as `file.data.config`
+* the gulp `file` object itself
 
 Send in callbacks as a second parameter in the form:
 
 ``` javascript
 {
-    transformCallback: tranformFunction,
-    finishCallback: finishFunction,
-    startCallback: startFunction
+    transformCallback: transformLineHandler,
+    finishCallback: defaultFinishHandler,
+    startCallback: defaultStartHandler
 }
 ```
 
@@ -41,6 +44,13 @@ Send in callbacks as a second parameter in the form:
 var handleLines = require('gulp-etl-handlelines').handlelines
 // for TypeScript use this line instead:
 // import { handlinelines } from 'gulp-etl-handlelines'
+
+const defaultFinishHandler = (context, file): void => {
+    console.log("The handler for " + file.basename + " has officially ended!");
+}
+const defaultStartHandler = (context, file) => {
+    console.log("The handler for " + file.basename + " has officially started!");
+}
 
 const linehandler = (lineObj, context) => {
     // add a linenum property to each line to demonstrate how the context object tracks context per file
@@ -62,7 +72,10 @@ const linehandler = (lineObj, context) => {
 exports.default = function() {
     return src('data/*.ndjson')
     // pipe the files through our handlelines plugin
-    .pipe(handlelines({}, { transformCallback: linehandler }))
+    .pipe(handlelines({}, { transformCallback: linehandler,
+        finishCallback: defaultFinishHandler,
+        startCallback: defaultStartHandler }
+    ))
     .pipe(dest('output/'));
 }
 ```
@@ -87,6 +100,6 @@ This plugin is intended to be a model **gulp-etl** plugin, usable as a template 
 
 We are using [Jest](https://facebook.github.io/jest/docs/en/getting-started.html) for our testing. Each of our tests are in the `test` folder.
 
-*-* Run `npm test` to run the test suites
+*-* Run `npm test` to run the test suites *Note: Tests are currently broken*
 
 Note: This document is written in [Markdown](https://daringfireball.net/projects/markdown/). We like to use [Typora](https://typora.io/) and [Markdown Preview Plus](https://chrome.google.com/webstore/detail/markdown-preview-plus/febilkbfcbhebfnokafefeacimjdckgl?hl=en-US) for our Markdown work..
